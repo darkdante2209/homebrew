@@ -57,7 +57,7 @@ class SubversionAT18 < Formula
       end
 
       scons(*args)
-      system "scons", "install"
+      scons "install"
     end
 
     if build.include? "unicode-path"

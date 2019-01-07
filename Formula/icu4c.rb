@@ -16,13 +16,8 @@ class Icu4c < Formula
   keg_only :provided_by_macos, "macOS provides libicucore.dylib (but nothing else)"
 
   def install
-    args = %W[
-      --prefix=#{prefix}
-      --disable-samples
-      --disable-tests
-      --enable-static
-      --with-library-bits=64
-    ]
+    args = %W[--prefix=#{prefix} --disable-samples --disable-tests --enable-static]
+    args << "--with-library-bits=64" if MacOS.prefer_64_bit?
 
     cd "source" do
       system "./configure", *args

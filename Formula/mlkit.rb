@@ -29,7 +29,8 @@ class Mlkit < Formula
     # invocation. Thus, on a 32-bit machine, both the mlton-compiled
     # binary (the mlkit compiler) and the 32-bit native code generated
     # by the mlkit compiler will be running 32-bit code.
-    ENV.permit_arch_flags
+
+    ENV.permit_arch_flags if MacOS.prefer_64_bit?
     system "make", "mlkit"
     system "make", "mlkit_libs"
     system "make", "install"

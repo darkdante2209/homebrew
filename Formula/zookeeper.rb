@@ -48,7 +48,12 @@ class Zookeeper < Formula
   end
 
   def install
-    ENV["ARCHFLAGS"] = Hardware::CPU.universal_archs.as_arch_flags
+    # Don't try to build extensions for PPC
+    if Hardware::CPU.is_32_bit?
+      ENV["ARCHFLAGS"] = "-arch #{Hardware::CPU.arch_32_bit}"
+    else
+      ENV["ARCHFLAGS"] = Hardware::CPU.universal_archs.as_arch_flags
+    end
 
     if build.head?
       system "ant", "compile_jute"

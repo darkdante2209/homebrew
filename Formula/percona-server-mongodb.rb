@@ -78,7 +78,7 @@ class PerconaServerMongodb < Formula
 
     args << "--disable-warnings-as-errors" if MacOS.version >= :yosemite
 
-    system "scons", "install", *args
+    scons "install", *args
 
     (buildpath/"mongod.conf").write <<~EOS
       systemLog:

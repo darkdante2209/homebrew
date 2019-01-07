@@ -21,7 +21,8 @@ class Landscaper < Formula
   def install
     ENV["GOPATH"] = buildpath
     ENV.prepend_create_path "PATH", buildpath/"bin"
-    ENV["TARGETS"] = "darwin/amd64"
+    arch = MacOS.prefer_64_bit? ? "amd64" : "x86"
+    ENV["TARGETS"] = "darwin/#{arch}"
     dir = buildpath/"src/github.com/eneco/landscaper"
     dir.install buildpath.children - [buildpath/".brew_home"]
 

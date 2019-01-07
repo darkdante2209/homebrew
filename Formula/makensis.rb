@@ -29,7 +29,7 @@ class Makensis < Formula
       "STRIP=0",
       "VERSION=#{version}",
     ]
-    system "scons", "makensis", *args
+    scons "makensis", *args
     bin.install "build/urelease/makensis/makensis"
     (share/"nsis").install resource("nsis")
   end

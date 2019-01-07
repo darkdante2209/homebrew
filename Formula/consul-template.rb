@@ -18,8 +18,9 @@ class ConsulTemplate < Formula
 
   def install
     ENV["GOPATH"] = buildpath
+    arch = MacOS.prefer_64_bit? ? "amd64" : "386"
     ENV["XC_OS"] = "darwin"
-    ENV["XC_ARCH"] = "amd64"
+    ENV["XC_ARCH"] = arch
     dir = buildpath/"src/github.com/hashicorp/consul-template"
     dir.install buildpath.children - [buildpath/".brew_home"]
 

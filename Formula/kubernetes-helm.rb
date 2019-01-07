@@ -21,7 +21,8 @@ class KubernetesHelm < Formula
     ENV["GOPATH"] = buildpath
     ENV["GLIDE_HOME"] = HOMEBREW_CACHE/"glide_home/#{name}"
     ENV.prepend_create_path "PATH", buildpath/"bin"
-    ENV["TARGETS"] = "darwin/amd64"
+    arch = MacOS.prefer_64_bit? ? "amd64" : "x86"
+    ENV["TARGETS"] = "darwin/#{arch}"
     dir = buildpath/"src/k8s.io/helm"
     dir.install buildpath.children - [buildpath/".brew_home"]
 

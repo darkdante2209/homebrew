@@ -20,6 +20,7 @@ class GdkPixbuf < Formula
   depends_on "jpeg"
   depends_on "libpng"
   depends_on "libtiff"
+  depends_on "jasper" => :optional
 
   patch do
     url "https://raw.githubusercontent.com/Homebrew/formula-patches/3d39ffd/gdk-pixbuf/meson-patches.diff"
@@ -53,6 +54,8 @@ class GdkPixbuf < Formula
       -Dinstalled_tests=false
       -Dman=false
     ]
+
+    args << "-Djasper=true" if build.with?("jasper")
 
     ENV["DESTDIR"] = "/"
     mkdir "build" do

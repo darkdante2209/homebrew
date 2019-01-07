@@ -19,6 +19,7 @@ class Pygtk < Formula
   depends_on "gtk+"
   depends_on "py2cairo"
   depends_on "pygobject"
+  depends_on "libglade" => :optional
 
   def install
     ENV.append "CFLAGS", "-ObjC"

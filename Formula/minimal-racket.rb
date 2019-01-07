@@ -25,6 +25,8 @@ class MinimalRacket < Formula
         --sysconfdir=#{etc}
       ]
 
+      args << "--disable-mac64" unless MacOS.prefer_64_bit?
+
       system "./configure", *args
       system "make"
       system "make", "install"

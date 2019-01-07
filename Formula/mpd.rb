@@ -108,14 +108,8 @@ class Mpd < Formula
     sleep 2
 
     begin
-      ohai "Connect to MPD command (localhost:6600)"
-      TCPSocket.open("localhost", 6600) do |sock|
-        assert_match "OK MPD", sock.gets
-        ohai "Ping server"
-        sock.puts("ping")
-        assert_match "OK", sock.gets
-        sock.close
-      end
+      assert_match "OK MPD", shell_output("curl localhost:6600")
+      assert_match "ACK", shell_output("(sleep 2; echo playid foo) | nc localhost 6600")
     ensure
       Process.kill "SIGINT", pid
       Process.wait pid
