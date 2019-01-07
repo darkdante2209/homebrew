@@ -42,6 +42,50 @@ class PhpAT56 < Formula
     # see https://github.com/php/php-src/pull/3472
     patch :DATA
   
+    needs :cxx11class PhpAT56 < Formula
+    desc "General-purpose scripting language"
+    homepage "https://secure.php.net/"
+    url "https://php.net/get/php-5.6.39.tar.xz/from/this/mirror"
+    sha256 "8147576001a832ff3d03cb2980caa2d6b584a10624f87ac459fcd3948c6e4a10"
+  
+    bottle do
+      sha256 "0f616518cdc1b20b0356ca22e7dd77a69da5c4f6354932868bd8ed3196f04872" => :mojave
+      sha256 "1d19ae0c315760f6d1cb97bc6437eaa6b1413f0cd022b93810c65eb62b4a56bb" => :high_sierra
+      sha256 "30a6ca5cdfd8ec6ad6e5c1f6f251248da3fff6f75d8916b1811ec5b3f8d17b0f" => :sierra
+    end
+  
+    keg_only :versioned_formula
+  
+    depends_on "httpd" => [:build, :test]
+    depends_on "pkg-config" => :build
+    depends_on "apr"
+    depends_on "apr-util"
+    depends_on "aspell"
+    depends_on "autoconf"
+    depends_on "curl-openssl"
+    depends_on "freetds"
+    depends_on "freetype"
+    depends_on "gettext"
+    depends_on "glib"
+    depends_on "gmp"
+    depends_on "icu4c"
+    depends_on "jpeg"
+    depends_on "libpng"
+    depends_on "libpq"
+    depends_on "libtool"
+    depends_on "libzip"
+    depends_on "mcrypt"
+    depends_on "openldap"
+    depends_on "openssl"
+    depends_on "pcre"
+    depends_on "sqlite"
+    depends_on "tidy-html5"
+    depends_on "unixodbc"
+  
+    # PHP build system incorrectly links system libraries
+    # see https://github.com/php/php-src/pull/3472
+    patch :DATA
+  
     needs :cxx11
   
     def install
@@ -78,14 +122,8 @@ class PhpAT56 < Formula
   
       inreplace "sapi/fpm/php-fpm.conf.in", ";daemonize = yes", "daemonize = no"
   
-      # API compatibility with tidy-html5 v5.0.0 - https://github.com/htacg/tidy-html5/issues/224
-      inreplace "ext/tidy/tidy.c", "buffio.h", "tidybuffio.h"
-  
       # Required due to icu4c dependency
       ENV.cxx11
-  
-      # icu4c 61.1 compatability
-      ENV.append "CPPFLAGS", "-DU_USING_ICU_NAMESPACE=1"
   
       config_path = etc/"php/#{php_version}"
       # Prevent system pear config from inhibiting pear install
@@ -108,6 +146,7 @@ class PhpAT56 < Formula
         --enable-bcmath
         --enable-calendar
         --enable-dba
+        --enable-dtrace
         --enable-exif
         --enable-ftp
         --enable-fpm
@@ -115,8 +154,10 @@ class PhpAT56 < Formula
         --enable-mbregex
         --enable-mbstring
         --enable-mysqlnd
+        --enable-opcache-file
         --enable-pcntl
         --enable-phpdbg
+        --enable-phpdbg-webhelper
         --enable-shmop
         --enable-soap
         --enable-sockets
@@ -148,7 +189,6 @@ class PhpAT56 < Formula
         --with-mhash#{headers_path}
         --with-mysql-sock=/tmp/mysql.sock
         --with-mysqli=mysqlnd
-        --with-mysql=mysqlnd
         --with-ndbm#{headers_path}
         --with-openssl=#{Formula["openssl"].opt_prefix}
         --with-pdo-dblib=#{Formula["freetds"].opt_prefix}
@@ -163,6 +203,7 @@ class PhpAT56 < Formula
         --with-sqlite3=#{Formula["sqlite"].opt_prefix}
         --with-tidy=#{Formula["tidy-html5"].opt_prefix}
         --with-unixODBC=#{Formula["unixodbc"].opt_prefix}
+        --with-webp-dir=#{Formula["webp"].opt_prefix}
         --with-xmlrpc
         --with-xsl#{headers_path}
         --with-zlib#{headers_path}
@@ -182,6 +223,7 @@ class PhpAT56 < Formula
       config_files = {
         "php.ini-development"   => "php.ini",
         "sapi/fpm/php-fpm.conf" => "php-fpm.conf",
+        "sapi/fpm/www.conf"     => "php-fpm.d/www.conf",
       }
       config_files.each_value do |dst|
         dst_default = config_path/"#{dst}.default"
@@ -263,12 +305,15 @@ class PhpAT56 < Formula
     def caveats
       <<~EOS
         To enable PHP in Apache add the following to httpd.conf and restart Apache:
-            LoadModule php5_module #{opt_lib}/httpd/modules/libphp5.so
+            LoadModule php7_module #{opt_lib}/httpd/modules/libphp7.so
+  
             <FilesMatch \\.php$>
                 SetHandler application/x-httpd-php
             </FilesMatch>
+  
         Finally, check DirectoryIndex includes index.php
             DirectoryIndex index.php index.html
+  
         The php.ini and php-fpm.ini file can be found in:
             #{etc}/php/#{php_version}/
       EOS
@@ -350,7 +395,7 @@ class PhpAT56 < Formula
         (testpath/"httpd.conf").write <<~EOS
           #{main_config}
           LoadModule mpm_prefork_module lib/httpd/modules/mod_mpm_prefork.so
-          LoadModule php5_module #{lib}/httpd/modules/libphp5.so
+          LoadModule php7_module #{lib}/httpd/modules/libphp7.so
           <FilesMatch \\.(php|phar)$>
             SetHandler application/x-httpd-php
           </FilesMatch>
@@ -465,6 +510,7 @@ class PhpAT56 < Formula
    dnl internal, don't use
   @@ -2411,7 +2419,8 @@ AC_DEFUN([PHP_SETUP_ICONV], [
        fi
+  
        if test -f $ICONV_DIR/$PHP_LIBDIR/lib$iconv_lib_name.a ||
   -       test -f $ICONV_DIR/$PHP_LIBDIR/lib$iconv_lib_name.$SHLIB_SUFFIX_NAME
   +       test -f $ICONV_DIR/$PHP_LIBDIR/lib$iconv_lib_name.$SHLIB_SUFFIX_NAME ||
@@ -472,32 +518,4 @@ class PhpAT56 < Formula
        then
          PHP_CHECK_LIBRARY($iconv_lib_name, libiconv, [
            found_iconv=yes
-  diff --git a/Zend/zend_compile.h b/Zend/zend_compile.h
-  index a0955e34fe..09b4984f90 100644
-  --- a/Zend/zend_compile.h
-  +++ b/Zend/zend_compile.h
-  @@ -414,9 +414,6 @@ struct _zend_execute_data {
-   #define EX(element) execute_data.element
-  -#define EX_TMP_VAR(ex, n)	   ((temp_variable*)(((char*)(ex)) + ((int)(n))))
-  -#define EX_TMP_VAR_NUM(ex, n)  (EX_TMP_VAR(ex, 0) - (1 + (n)))
-  -
-   #define EX_CV_NUM(ex, n)       (((zval***)(((char*)(ex))+ZEND_MM_ALIGNED_SIZE(sizeof(zend_execute_data))))+(n))
-  diff --git a/Zend/zend_execute.h b/Zend/zend_execute.h
-  index a7af67bc13..ae71a5c73f 100644
-  --- a/Zend/zend_execute.h
-  +++ b/Zend/zend_execute.h
-  @@ -71,6 +71,15 @@ ZEND_API int zend_eval_stringl_ex(char *str, int str_len, zval *retval_ptr, char
-   ZEND_API char * zend_verify_arg_class_kind(const zend_arg_info *cur_arg_info, ulong fetch_type, const char **class_name, zend_class_entry **pce TSRMLS_DC);
-   ZEND_API int zend_verify_arg_error(int error_type, const zend_function *zf, zend_uint arg_num, const char *need_msg, const char *need_kind, const char *given_msg, const char *given_kind TSRMLS_DC);
-  +static zend_always_inline temp_variable *EX_TMP_VAR(void *ex, int n)
-  +{
-  +	return (temp_variable *)((zend_uintptr_t)ex + n);
-  +}
-  +static inline temp_variable *EX_TMP_VAR_NUM(void *ex, int n)
-  +{
-  +	return (temp_variable *)((zend_uintptr_t)ex - (1 + n) * sizeof(temp_variable));
-  +}
-  +
-   static zend_always_inline void i_zval_ptr_dtor(zval *zval_ptr ZEND_FILE_LINE_DC TSRMLS_DC)
-   {
-      if (!Z_DELREF_P(zval_ptr)) {
+  
